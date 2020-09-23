@@ -1,20 +1,7 @@
+import { generateSlugFromString } from "lib/slug-generator";
+
 import { Box, Divider, Heading, Link, Text } from "@chakra-ui/core";
 import NextLink from "next/link";
-
-function groupPlayersByLastName(players) {
-  return players.reduce((accumulator, player) => {
-    const lastName = player.name.split(" ").pop();
-    const group = lastName[0].toLocaleLowerCase();
-
-    if (!accumulator[group]) {
-      accumulator[group] = { group, children: [player] };
-    } else {
-      accumulator[group].children.push(player);
-    }
-
-    return accumulator;
-  }, {});
-}
 
 export default function PlayerList({ players }) {
   if (!players) {
@@ -31,12 +18,12 @@ export default function PlayerList({ players }) {
           const playersInAlphabeticGroup = playersGroupedByLastName[
             alphabeticGroup
           ].children.sort((a, b) => {
-            let aLastName = a.name
+            let aLastName = a.player_name
               .split(" ")
               .slice(-1)
               .pop()
               .toLocaleLowerCase();
-            let bLastName = b.name
+            let bLastName = b.player_name
               .split(" ")
               .slice(-1)
               .pop()
@@ -53,16 +40,19 @@ export default function PlayerList({ players }) {
                   {alphabeticGroup.toLocaleUpperCase()}
                 </Heading>
                 {playersInAlphabeticGroup.map((player, index) => {
+                  const playerSlug =
+                    player.slug ?? generateSlugFromString(player.player_name);
+
                   return (
-                    <React.Fragment key={player.id}>
+                    <React.Fragment key={player.player_id}>
                       <NextLink
                         href="players/[playerSlug]"
-                        as={`players/${player.slug}`}
+                        as={`players/${playerSlug}`}
                         passHref
                       >
-                        <Link>{player.name}</Link>
+                        <Link>{player.player_name}</Link>
                       </NextLink>
-                      {player.isIncinerated && (
+                      {player.deceased ? (
                         <Text
                           ariaLabel="incinerated"
                           as="span"
@@ -71,7 +61,7 @@ export default function PlayerList({ players }) {
                         >
                           🔥
                         </Text>
-                      )}
+                      ) : null}
                       {index < playersInAlphabeticGroup.length - 1 && ", "}
                     </React.Fragment>
                   );
@@ -82,4 +72,19 @@ export default function PlayerList({ players }) {
         })}
     </>
   );
+}
+
+function groupPlayersByLastName(players) {
+  return players.reduce((accumulator, player) => {
+    const lastName = player.player_name.split(" ").pop();
+    const group = lastName[0].toLocaleLowerCase();
+
+    if (!accumulator[group]) {
+      accumulator[group] = { group, children: [player] };
+    } else {
+      accumulator[group].children.push(player);
+    }
+
+    return accumulator;
+  }, {});
 }

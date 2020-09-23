@@ -6,8 +6,10 @@ import { Box, Heading, Text } from "@chakra-ui/core";
 import Layout from "components/Layout";
 import PlayerList from "components/PlayerList";
 
+const dbApiFetcher = (url) => apiFetcher(url, { useDatabase: true });
+
 export default function PlayersPage(props) {
-  const { data, error } = useSWR("/players/players.json", undefined, {
+  const { data, error } = useSWR("/allPlayers", dbApiFetcher, {
     errorRetryCount: 5,
     initialData: props.players,
   });
@@ -54,7 +56,7 @@ export async function getStaticProps({ params, preview = false }) {
   let players = null;
 
   try {
-    players = await apiFetcher("/players/players.json");
+    players = await dbApiFetcher("/allPlayers");
   } catch (error) {
     console.log(error);
   }
