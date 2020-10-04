@@ -1,12 +1,10 @@
-import apiFetcher from "lib/api-fetcher";
+import { dbApiFetcher } from "lib/api-fetcher";
 import useSWR from "swr";
 
 import Head from "next/head";
 import { Box, Heading, Text } from "@chakra-ui/core";
 import Layout from "components/Layout";
 import PlayerList from "components/PlayerList";
-
-const dbApiFetcher = (url) => apiFetcher(url, { useDatabase: true });
 
 export default function PlayersPage(props) {
   const { data, error } = useSWR("/allPlayers", dbApiFetcher, {
