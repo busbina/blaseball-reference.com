@@ -1,18 +1,24 @@
 import Color from "tinycolor2";
 import { useEffect, useMemo, useState } from "react";
+import useForbiddenKnowledge from "hooks/useForbiddenKnowledge";
 
 import {
   Box,
   Circle,
   Flex,
   Heading,
+  Link,
   Select,
   SimpleGrid,
   Skeleton,
   Stack,
   Square,
   Text,
+  VisuallyHidden,
 } from "@chakra-ui/core";
+import ForbiddenKnowledgeToggle from "components/ForbiddenKnowledgeToggle";
+import NextLink from "next/link";
+import { WeatherIcon, WeatherName } from "../weather";
 
 export default function TeamSchedule({
   schedule,
@@ -22,6 +28,10 @@ export default function TeamSchedule({
 }) {
   const [selectedSeason, setSelectedSeason] = useState(null);
   const [seasonList, setSeasonList] = useState([]);
+  const [
+    showForbiddenKnowledge,
+    setShowForbiddenKnowledge,
+  ] = useForbiddenKnowledge();
 
   const handleSeasonSelectChange = (evt) => {
     setSelectedSeason(evt.target.value);
@@ -33,7 +43,7 @@ export default function TeamSchedule({
         ? Object.keys(schedule).sort((a, b) => Number(a) - Number(b))
         : []),
     ]);
-  }, [team.teamName]);
+  }, [team]);
 
   useEffect(() => {
     if (seasonList?.length > 0) {
@@ -50,35 +60,58 @@ export default function TeamSchedule({
     const seasonStartDate = new Date(`${seasonStartDates[selectedSeason]} UTC`);
     const gamesByDay = [];
 
+    let previousGameHasStarted = false;
     let currGameDate = seasonStartDate;
     for (const day in schedule[selectedSeason]) {
+      // Get real world day and hour for current game day
       const currDay = currGameDate.getDate();
       const currHour = currGameDate.getHours();
 
+      // Find real world day bucket if it exists
       const currDayGames = gamesByDay.find(
         (dayGames) => dayGames.day === currDay
       );
+
+      const currHourGames = schedule[selectedSeason][day].map((game) => {
+        const visibleOnSite = previousGameHasStarted || game.gameStart;
+        previousGameHasStarted = !!game.gameStart;
+
+        return {
+          ...game,
+          visibleOnSite,
+        };
+      });
 
       if (!currDayGames) {
         gamesByDay.push({
           day: currDay,
           startingDate: new Date(currGameDate),
           gamesByHour: {
-            [currHour]: schedule[selectedSeason][day],
+            [currHour]: currHourGames,
           },
         });
       } else {
         currDayGames.gamesByHour = {
           ...currDayGames.gamesByHour,
-          [currHour]: schedule[selectedSeason][day],
+          [currHour]: currHourGames,
         };
       }
 
+      // At the end of the regular season, assign future postseason games into real world's next date
+      // - Also preset the start of the postseason time
+      if (Number(day) + 1 === 99) {
+        currGameDate.setDate(currDay + 1);
+        currGameDate.setUTCHours(13);
+        continue;
+      }
+
+      // Increment real world hour by one
+      // - Increments the day by one if the hour exceeds 24
       currGameDate.setHours(currHour + 1);
     }
 
     return gamesByDay;
-  }, [team.teamName, seasonStartDates, selectedSeason]);
+  }, [team, seasonStartDates, selectedSeason]);
 
   // Loading skeleton
   if (!selectedSeason || !selectedSeasonScheduleByDate) {
@@ -112,24 +145,30 @@ export default function TeamSchedule({
           value={selectedSeason}
         >
           {seasonList.map((season) => (
-            <option key={season} value={season}>
-              {`Season ${Number(season) + 1}`}
-            </option>
+            <option key={season} value={season}>{`Season ${
+              Number(season) + 1
+            }`}</option>
           ))}
         </Select>
       </Flex>
       <TeamDailySchedule
         dailySchedule={selectedSeasonScheduleByDate}
-        season={selectedSeason}
+        showForbiddenKnowledge={showForbiddenKnowledge}
         team={team}
         teams={teams}
       />
       <TeamDailyScheduleKey team={team} />
+      <ForbiddenKnowledgeToggle />
     </>
   );
 }
 
-function TeamDailySchedule({ dailySchedule, team, teams }) {
+function TeamDailySchedule({
+  dailySchedule,
+  showForbiddenKnowledge,
+  team,
+  teams,
+}) {
   const homeGameBackgroundColor =
     Color(team.mainColor).getLuminance() < 0.9
       ? team.mainColor
@@ -142,7 +181,7 @@ function TeamDailySchedule({ dailySchedule, team, teams }) {
   return (
     <>
       {dailySchedule.map((day) => (
-        <Box key={day.startingDate.getTime()} mb={4}>
+        <Box key={[day.startingDate.toString(), team.id].toString()} mb={4}>
           <Heading as="h2" mb={4} size="md">
             {day.startingDate.toLocaleString(undefined, {
               day: "numeric",
@@ -180,7 +219,7 @@ function TeamDailySchedule({ dailySchedule, team, teams }) {
                     borderLeft="1px solid"
                     borderTop="1px solid"
                     borderColor="black"
-                    key={dayStartingTime.toString()}
+                    key={currGameDay}
                   >
                     <Box
                       background={
@@ -241,9 +280,37 @@ function TeamDailySchedule({ dailySchedule, team, teams }) {
                               textAlign="center"
                             >
                               {game.homeTeam === team.id ? (
-                                <>vs. {opposingTeam.nickname}</>
+                                <>
+                                  vs.{" "}
+                                  <NextLink
+                                    href="/teams/[teamSlug]/schedule"
+                                    as={`/teams/${opposingTeam.slug}/schedule`}
+                                    passHref
+                                  >
+                                    <Link>
+                                      {opposingTeam.nickname}{" "}
+                                      <VisuallyHidden>
+                                        team schedule
+                                      </VisuallyHidden>
+                                    </Link>
+                                  </NextLink>
+                                </>
                               ) : (
-                                <>@ {opposingTeam.nickname}</>
+                                <>
+                                  @{" "}
+                                  <NextLink
+                                    href="/teams/[teamSlug]/schedule"
+                                    as={`/teams/${opposingTeam.slug}/schedule`}
+                                    passHref
+                                  >
+                                    <Link>
+                                      {opposingTeam.nickname}{" "}
+                                      <VisuallyHidden>
+                                        team schedule
+                                      </VisuallyHidden>
+                                    </Link>
+                                  </NextLink>
+                                </>
                               )}
                             </Box>
                             {game.gameComplete ? (
@@ -251,10 +318,30 @@ function TeamDailySchedule({ dailySchedule, team, teams }) {
                                 <Text as="span" fontWeight="bold">
                                   {isWinningTeam ? "W" : "L"},{" "}
                                 </Text>
-                                <Text as="span">
-                                  {game.awayScore} - {game.homeScore}
-                                </Text>
+                                <NextLink
+                                  href={`${process.env.NEXT_PUBLIC_REBLASE_URL}/game/${game.id}`}
+                                  passHref
+                                >
+                                  <Link isExternal>
+                                    {game.awayScore} - {game.homeScore}
+                                    <VisuallyHidden>
+                                      view game in Reblase
+                                    </VisuallyHidden>
+                                  </Link>
+                                </NextLink>
                               </Box>
+                            ) : null}
+                            {game.visibleOnSite || showForbiddenKnowledge ? (
+                              <Flex
+                                alignItems="center"
+                                fontSize={{ base: "xs", md: "sm" }}
+                                mt={{ base: 2, md: 3 }}
+                              >
+                                <WeatherIcon for={game.weather} />
+                                <Box ml={1}>
+                                  <WeatherName for={game.weather} />
+                                </Box>
+                              </Flex>
                             ) : null}
                           </Flex>
                         );

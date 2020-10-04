@@ -1,6 +1,6 @@
 import NextLink from "next/link";
 import Table from "components/Table";
-import { Link, Tooltip } from "@chakra-ui/core";
+import { Flex, Link, Tooltip } from "@chakra-ui/core";
 
 export default function PitchingStatTable({
   isPostseason = false,
@@ -36,7 +36,7 @@ export default function PitchingStatTable({
         {
           accessor: "season",
           Header: (
-            <Tooltip hasArrow label="Year" placement="top">
+            <Tooltip closeOnClick={false} hasArrow label="Year" placement="top">
               Yr
             </Tooltip>
           ),
@@ -51,7 +51,7 @@ export default function PitchingStatTable({
         {
           accessor: "teamName",
           Header: (
-            <Tooltip hasArrow label="Team" placement="top">
+            <Tooltip closeOnClick={false} hasArrow label="Team" placement="top">
               Tm
             </Tooltip>
           ),
@@ -73,7 +73,25 @@ export default function PitchingStatTable({
     [isPostseason, statTargetName]
   );
 
-  return <Table columns={columns} data={data} />;
+  return (
+    <Table columns={columns} data={data}>
+      <Flex alignContent="center" justifyContent="space-between" mb={1}>
+        <Table.Heading>
+          {isPostseason
+            ? "Postseason Pitching Stats"
+            : "Standard Pitching Stats"}
+        </Table.Heading>
+        <Flex alignItems="center">
+          <Table.CSVExport
+            filename={`${statTargetName} ${
+              isPostseason ? "Postseason" : "Regular Season"
+            } Pitching Stats.csv`}
+          />
+        </Flex>
+      </Flex>
+      <Table.Content />
+    </Table>
+  );
 }
 
 export function commonPitchingStatColumns(summaryData = null) {
@@ -81,7 +99,7 @@ export function commonPitchingStatColumns(summaryData = null) {
     {
       accessor: "wins",
       Header: (
-        <Tooltip hasArrow label="Wins" placement="top">
+        <Tooltip closeOnClick={false} hasArrow label="Wins" placement="top">
           W
         </Tooltip>
       ),
@@ -90,7 +108,7 @@ export function commonPitchingStatColumns(summaryData = null) {
     {
       accessor: "losses",
       Header: (
-        <Tooltip hasArrow label="Losses" placement="top">
+        <Tooltip closeOnClick={false} hasArrow label="Losses" placement="top">
           L
         </Tooltip>
       ),
@@ -99,7 +117,12 @@ export function commonPitchingStatColumns(summaryData = null) {
     {
       accessor: "winningPercentage",
       Header: (
-        <Tooltip hasArrow label="Winning Percentage" placement="top">
+        <Tooltip
+          closeOnClick={false}
+          hasArrow
+          label="Winning Percentage"
+          placement="top"
+        >
           W-L%
         </Tooltip>
       ),
@@ -108,11 +131,17 @@ export function commonPitchingStatColumns(summaryData = null) {
           ? Number.parseFloat(summaryData.winningPercentage).toFixed(2)
           : null,
       Cell: ({ value }) => Number.parseFloat(value).toFixed(2),
+      sortType: "basic",
     },
     {
       accessor: "earnedRunAverage",
       Header: (
-        <Tooltip hasArrow label="Earned Run Average" placement="top">
+        <Tooltip
+          closeOnClick={false}
+          hasArrow
+          label="Earned Run Average"
+          placement="top"
+        >
           ERA
         </Tooltip>
       ),
@@ -121,11 +150,17 @@ export function commonPitchingStatColumns(summaryData = null) {
           ? Number.parseFloat(summaryData.earnedRunAverage).toFixed(2)
           : null,
       Cell: ({ value }) => Number.parseFloat(value).toFixed(2),
+      sortType: "basic",
     },
     {
       accessor: "appearances",
       Header: (
-        <Tooltip hasArrow label="Games Played" placement="top">
+        <Tooltip
+          closeOnClick={false}
+          hasArrow
+          label="Games Played"
+          placement="top"
+        >
           G
         </Tooltip>
       ),
@@ -134,7 +169,7 @@ export function commonPitchingStatColumns(summaryData = null) {
     {
       accessor: "shutouts",
       Header: (
-        <Tooltip hasArrow label="Shutouts" placement="top">
+        <Tooltip closeOnClick={false} hasArrow label="Shutouts" placement="top">
           SHO
         </Tooltip>
       ),
@@ -143,17 +178,28 @@ export function commonPitchingStatColumns(summaryData = null) {
     {
       accessor: "inningsPitched",
       Header: (
-        <Tooltip hasArrow label="Innings Pitched" placement="top">
+        <Tooltip
+          closeOnClick={false}
+          hasArrow
+          label="Innings Pitched"
+          placement="top"
+        >
           IP
         </Tooltip>
       ),
       Cell: ({ value }) => Number.parseFloat(value).toFixed(1),
       Footer: () => summaryData?.inningsPitched ?? null,
+      sortType: "basic",
     },
     {
       accessor: "hitsAllowed",
       Header: (
-        <Tooltip hasArrow label="Hits Allowed" placement="top">
+        <Tooltip
+          closeOnClick={false}
+          hasArrow
+          label="Hits Allowed"
+          placement="top"
+        >
           H
         </Tooltip>
       ),
@@ -162,7 +208,12 @@ export function commonPitchingStatColumns(summaryData = null) {
     {
       accessor: "earnedRuns",
       Header: (
-        <Tooltip hasArrow label="Earned Runs" placement="top">
+        <Tooltip
+          closeOnClick={false}
+          hasArrow
+          label="Earned Runs"
+          placement="top"
+        >
           R
         </Tooltip>
       ),
@@ -171,7 +222,12 @@ export function commonPitchingStatColumns(summaryData = null) {
     {
       accessor: "homeRuns",
       Header: (
-        <Tooltip hasArrow label="Home Runs" placement="top">
+        <Tooltip
+          closeOnClick={false}
+          hasArrow
+          label="Home Runs"
+          placement="top"
+        >
           HR
         </Tooltip>
       ),
@@ -180,7 +236,12 @@ export function commonPitchingStatColumns(summaryData = null) {
     {
       accessor: "basesOnBalls",
       Header: (
-        <Tooltip hasArrow label="Bases on Balls (Walks)" placement="top">
+        <Tooltip
+          closeOnClick={false}
+          hasArrow
+          label="Bases on Balls (Walks)"
+          placement="top"
+        >
           BB
         </Tooltip>
       ),
@@ -189,7 +250,12 @@ export function commonPitchingStatColumns(summaryData = null) {
     {
       accessor: "strikeouts",
       Header: (
-        <Tooltip hasArrow label="Strikeouts" placement="top">
+        <Tooltip
+          closeOnClick={false}
+          hasArrow
+          label="Strikeouts"
+          placement="top"
+        >
           SO
         </Tooltip>
       ),
@@ -198,7 +264,12 @@ export function commonPitchingStatColumns(summaryData = null) {
     {
       accessor: "qualityStarts",
       Header: (
-        <Tooltip hasArrow label="Quality Starts" placement="top">
+        <Tooltip
+          closeOnClick={false}
+          hasArrow
+          label="Quality Starts"
+          placement="top"
+        >
           QS
         </Tooltip>
       ),
@@ -207,7 +278,12 @@ export function commonPitchingStatColumns(summaryData = null) {
     {
       accessor: "battersFaced",
       Header: (
-        <Tooltip hasArrow label="Batters Faced" placement="top">
+        <Tooltip
+          closeOnClick={false}
+          hasArrow
+          label="Batters Faced"
+          placement="top"
+        >
           BF
         </Tooltip>
       ),
@@ -217,6 +293,7 @@ export function commonPitchingStatColumns(summaryData = null) {
       accessor: "walksAndHitsPerInningPitched",
       Header: (
         <Tooltip
+          closeOnClick={false}
           hasArrow
           label="Walks and Hits Per Inning Pitched"
           placement="top"
@@ -231,11 +308,17 @@ export function commonPitchingStatColumns(summaryData = null) {
             )
           : null,
       Cell: ({ value }) => Number.parseFloat(value).toFixed(3),
+      sortType: "basic",
     },
     {
       accessor: "hitsAllowedPerNine",
       Header: (
-        <Tooltip hasArrow label="Hits Per 9 Innings" placement="top">
+        <Tooltip
+          closeOnClick={false}
+          hasArrow
+          label="Hits Per 9 Innings"
+          placement="top"
+        >
           H9
         </Tooltip>
       ),
@@ -244,11 +327,17 @@ export function commonPitchingStatColumns(summaryData = null) {
           ? Number.parseFloat(summaryData.hitsAllowedPerNine).toFixed(1)
           : null,
       Cell: ({ value }) => Number.parseFloat(value).toFixed(1),
+      sortType: "basic",
     },
     {
       accessor: "homeRunsPerNine",
       Header: (
-        <Tooltip hasArrow label="Home Runs Per 9 Innings" placement="top">
+        <Tooltip
+          closeOnClick={false}
+          hasArrow
+          label="Home Runs Per 9 Innings"
+          placement="top"
+        >
           HR9
         </Tooltip>
       ),
@@ -257,11 +346,17 @@ export function commonPitchingStatColumns(summaryData = null) {
           ? Number.parseFloat(summaryData.homeRunsPerNine).toFixed(1)
           : null,
       Cell: ({ value }) => Number.parseFloat(value).toFixed(1),
+      sortType: "basic",
     },
     {
       accessor: "basesOnBallsPerNine",
       Header: (
-        <Tooltip hasArrow label="Walks Per 9 Innings" placement="top">
+        <Tooltip
+          closeOnClick={false}
+          hasArrow
+          label="Walks Per 9 Innings"
+          placement="top"
+        >
           BB9
         </Tooltip>
       ),
@@ -270,11 +365,17 @@ export function commonPitchingStatColumns(summaryData = null) {
           ? Number.parseFloat(summaryData.basesOnBallsPerNine).toFixed(1)
           : null,
       Cell: ({ value }) => Number.parseFloat(value).toFixed(1),
+      sortType: "basic",
     },
     {
       accessor: "strikeoutsPerNine",
       Header: (
-        <Tooltip hasArrow label="Strikeouts Per 9 Innings" placement="top">
+        <Tooltip
+          closeOnClick={false}
+          hasArrow
+          label="Strikeouts Per 9 Innings"
+          placement="top"
+        >
           SO9
         </Tooltip>
       ),
@@ -283,11 +384,17 @@ export function commonPitchingStatColumns(summaryData = null) {
           ? Number.parseFloat(summaryData.strikeoutsPerNine).toFixed(1)
           : null,
       Cell: ({ value }) => Number.parseFloat(value).toFixed(1),
+      sortType: "basic",
     },
     {
       accessor: "strikeoutToWalkRatio",
       Header: (
-        <Tooltip hasArrow label="Strikeout-to-Walk Ratio" placement="top">
+        <Tooltip
+          closeOnClick={false}
+          hasArrow
+          label="Strikeout-to-Walk Ratio"
+          placement="top"
+        >
           SO/BB
         </Tooltip>
       ),
@@ -296,6 +403,7 @@ export function commonPitchingStatColumns(summaryData = null) {
           ? Number.parseFloat(summaryData.strikeoutToWalkRatio).toFixed(2)
           : null,
       Cell: ({ value }) => Number.parseFloat(value).toFixed(2),
+      sortType: "basic",
     },
   ];
 }
